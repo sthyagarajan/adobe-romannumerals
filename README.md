@@ -134,7 +134,7 @@ $ ./gradlew dockerStop
 You can push the built docker image to Docker Registry
 
 ```sh
-$ ./gradlew dockerPush
+$ ./gradlew dockerPush -PdockerHubUsername=<username>
 ```
 ![Alt text](docs/GradleDockerHubPush.png) 
 
