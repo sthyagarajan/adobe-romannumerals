@@ -178,7 +178,7 @@ $ docker-compose -f docker/docker-compose.yml down
 #### Running application with metrics, monitoring only
 
 If you run into memory issues on your local docker machine(docker desktop) feel free to use the below commands to start 
-only the following contianers
+only the following containers
 
 * RomanNumeral SpringBoot Application
 * Prometheus
