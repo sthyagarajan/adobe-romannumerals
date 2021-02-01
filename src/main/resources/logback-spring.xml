@@ -1,0 +1,64 @@
+<configuration>
+    <appender name="STDERR"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%date %level [%file:%line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>DENY</onMatch>
+        </filter>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+        </filter>
+        <encoder>
+            <pattern>%date %level [%file:%line] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logstash endpoint, expected host:port format. -->
+    <springProperty name="logstashTcpEndpoint" source="logging.logstash-tcp-endpoint"/>
+
+    <springProfile name="!local">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${logstashTcpEndpoint}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"applicationName":"${applicationName}","env":"${env}"}</customFields>
+                <includeCallerData>true</includeCallerData>
+            </encoder>
+        </appender>
+    </springProfile>
+
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDERR"/>
+        <springProfile name="!local">
+            <appender-ref ref="LOGSTASH"/>
+        </springProfile>
+    </root>
+
+</configuration>

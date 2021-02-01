@@ -1,0 +1,21 @@
+{
+  "index_patterns": "jvm_logback_*",
+  "settings": {
+    "index": {
+      "number_of_shards": "1",
+      "number_of_replicas": "1"
+    }
+  },
+  "mappings": {
+    "doc": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "message": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}

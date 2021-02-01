@@ -1,0 +1,100 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'com.palantir.docker' version '0.25.0'
+    id 'com.palantir.docker-run' version '0.25.0'
+    id 'jacoco'
+    id 'com.github.ksoichiro.console.reporter' version '0.6.2'
+    id 'idea'
+    id 'groovy'
+}
+
+group 'com.adobe.engineering.romannumerals'
+version '1.0-SNAPSHOT'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.springfox:springfox-swagger2:2.7.0'
+    implementation 'io.springfox:springfox-swagger-ui:2.7.0'
+    implementation 'net.logstash.logback:logstash-logback-encoder:6.6'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.spockframework:spock-core:1.2-groovy-2.4'
+    testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.4'
+}
+
+test {
+    doFirst {
+        systemProperty 'spring.profiles.active', 'local'
+    }
+    useJUnitPlatform()
+    afterTest { desc, result ->
+        logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+    }
+    testLogging {
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            }
+        }
+    }
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+    finalizedBy reportCoverage
+    doLast {
+        println "View Coverage Report here : "  + new URI("file", "", file("${buildDir}/jacocoHtml/index.html").toURI().getPath(), null, null).toString();
+    }
+}
+
+consoleReporter {
+    jacoco {
+        enabled true
+        onlyWhenCoverageTaskExecuted true
+        reportAfterBuildFinished true
+        failIfLessThanThresholdError false
+        autoconfigureCoverageConfig true
+        coverageTaskName 'jacocoTestReport'
+        reportFile
+        thresholdFine 90
+        thresholdWarning 70
+        thresholdError 0
+        brokenCoverageErrorMessage "Coverage has fallen below the threshold in some projects."
+        colorEnabled true
+    }
+}
+
+String dockerHubUsernameProperty = findProperty('dockerHubUsername') ?:'sthyagarajan'
+String imageName = "${dockerHubUsernameProperty}/${rootProject.name}"
+
+docker {
+    name imageName
+    tags project.version, 'latest'
+    dockerfile = file('docker/Dockerfile')
+    files "build/libs/${bootJar.archiveFileName.get()}"
+    buildArgs([JAR_FILE: bootJar.archiveFileName.get()])
+}
+
+dockerRun {
+    name rootProject.name
+    image imageName
+    ports '8080:8080'
+    clean true
+}
+

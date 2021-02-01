@@ -1,0 +1,101 @@
+version: "3"
+services:
+  application:
+    image: ${dockerHubUserName}/adobe-romannumerals:1.0-SNAPSHOT
+    ports:
+      - 8080:8080
+    links:
+      - logstash
+    depends_on:
+      - prometheus
+      - logstash
+    networks:
+      - front-tier
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ../metrics-monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../metrics-monitoring/rules.yml:/etc/prometheus/rules.yml
+    ports:
+      - 9090:9090
+    networks:
+      - front-tier
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - 9093:9093
+    volumes:
+      - ../metrics-monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    networks:
+      - front-tier
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ../metrics-monitoring/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    networks:
+      - front-tier
+    depends_on:
+      - prometheus
+  elasticsearch:
+    image: elasticsearch:7.7.0
+    container_name: elasticsearch
+    hostname: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 2g
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - front-tier
+  kibana:
+    image: kibana:7.7.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    hostname: kibana
+    ports:
+      - 5601:5601
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+    networks:
+      - front-tier
+  logstash:
+    image: logstash:7.7.0
+    container_name: logstash
+    hostname: logstash
+    ports:
+      - 9600:9600
+      - 8089:8089
+    volumes:
+      - ../logstash/pipelines:/usr/share/logstash/pipeline/
+      - ../logstash/templates:/usr/share/logstash/templates/
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+    networks:
+      - front-tier
+
+volumes:
+  esdata1:
+    driver: local
+
+networks:
+  front-tier:
+    driver: bridge
