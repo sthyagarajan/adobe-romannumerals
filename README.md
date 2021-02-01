@@ -5,7 +5,7 @@
 **Write a service that would take integer as input and convert it to romannumeral**
 > ![Warn](docs/Info-Icon.png) 
 >
-> The goal was to build /romannumeral but changed it to /api/v1/romannumeral to meet industry standards
+> The goal was to build /romannumeral but changed it to /api/v1/romannumeral to version the API
 
 * Your HTTP Endpoint must accept a URI in this format:
   http://localhost:8080/romannumeral?query={integer} 
