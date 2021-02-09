@@ -7,6 +7,8 @@ import com.adobe.engineering.romannumerals.strategy.impl.RomanNumeralExtensionCo
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,7 +29,10 @@ import org.springframework.stereotype.Service;
 public class RomanNumeralServiceImpl implements RomanNumeralService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-    RomanNumeralConvertorStrategy romanNumeralConvertorStrategy = new RomanNumeralExtensionConvertorStrategy();
+
+    @Autowired
+    @Qualifier("ExtensionStrategy")
+    RomanNumeralConvertorStrategy romanNumeralConvertorStrategy;
 
     /**
      * This is a service method that is responsible for converting

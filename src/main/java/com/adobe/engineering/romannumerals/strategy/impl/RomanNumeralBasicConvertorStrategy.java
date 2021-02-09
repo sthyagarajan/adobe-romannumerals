@@ -4,6 +4,8 @@ import com.adobe.engineering.romannumerals.errors.Error;
 import com.adobe.engineering.romannumerals.exception.ServiceException;
 import com.adobe.engineering.romannumerals.strategy.RomanNumeralConvertorStrategy;
 import com.adobe.engineering.romannumerals.util.ConversionUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  * <h1>RomanNumeralBasicConvertorStrategy</h1>
@@ -17,7 +19,8 @@ import com.adobe.engineering.romannumerals.util.ConversionUtils;
  * @version 1.0
  * @since   2021-01-30
  */
-
+@Component
+@Qualifier("BasicStrategy")
 public class RomanNumeralBasicConvertorStrategy implements RomanNumeralConvertorStrategy {
 
     static int[] units = {1,4,5,9,10,40,50,90,100};
